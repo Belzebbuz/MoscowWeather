@@ -1,0 +1,164 @@
+@model ViewArchivesModel
+@{
+	int currentPage = Model.Result.CurrentPage;
+	int totalPages = Model.Result.TotalPageCount;
+	bool hasNextPage = Model.Result.HasNextPage;
+	bool hasPreviousPage = Model.Result.HasPreviousPage;
+	int[] firstPages = new[] { 1, 2 };
+	int[] lastPages = new[] { totalPages - 1, totalPages };
+	int min = hasPreviousPage ? currentPage - 1 : 1;
+	int max = hasNextPage ? currentPage + 1 : totalPages;
+	bool hasLeftDots = !firstPages.Contains(min == 1 ? min : min - 1);
+	bool hasRightDots = !lastPages.Contains(max == totalPages ? max : max + 1);
+	string GetPageItemClass(int page) => page == currentPage ? "page-item active" : "page-item";
+
+}
+
+<div class="d-flex mt-4 gap-4">
+	@if (Model.Years != null && Model.Years.Any())
+	{
+		<div class="dropdown">
+			<button class="btn btn-secondary dropdown-toggle" type="button" id="yearDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
+				@(Model.Query.Year != null ? $"Год: {Model.Query.Year}" : "Год не выбран")
+			</button>
+			<ul class="dropdown-menu" aria-labelledby="yearDropdownButton">
+				@foreach (var year in Model.Years)
+				{
+
+					<li>
+						<a class="dropdown-item"
+						   asp-controller="ViewArchives"
+						   asp-action="GetData"
+						   asp-route-year="@(year)"
+						   asp-route-page="1">@year</a>
+					</li>
+				}
+			</ul>
+		</div>
+	}
+	<div class="dropdown">
+		<button class="btn btn-secondary dropdown-toggle" type="button" id="monthDropdownButton" data-bs-toggle="dropdown" aria-expanded="false">
+			@(Model.Query.Month != null ? $"Месяц: {Model.Query.Month}" : "Месяц не выбран")
+		</button>
+		<ul class="dropdown-menu" aria-labelledby="monthDropdownButton">
+			@for (int i = 1; i <= 12; i++)
+			{
+
+				<li>
+					<a class="dropdown-item"
+					   asp-controller="ViewArchives"
+					   asp-action="GetData"
+					   asp-route-year="@(Model.Query.Year)"
+					   asp-route-month="@(i)"
+					   asp-route-page="1">@i</a>
+				</li>
+			}
+		</ul>
+	</div>
+	<a class="btn btn-primary" 
+		asp-controller="ViewArchives"
+	   asp-action="GetData"
+	   asp-route-page="1">Сбросить</a>
+</div>
+
+<table class="table mt-2">
+	<thead>
+		<tr>
+			<th scope="col">Дата</th>
+			<th scope="col">Т</th>
+			<th scope="col">Отн. влажность воздуха %</th>
+			<th scope="col">Td</th>
+			<th scope="col">Атм. давл мм рт. ст.</th>
+			<th scope="col">Направление ветра</th>
+			<th scope="col">Скорость ветра, м/с</th>
+			<th scope="col">Облачность %</th>
+			<th scope="col">h</th>
+			<th scope="col">VV</th>
+			<th scope="col">Погодные явления</th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var log in Model.Result.Data)
+		{
+			<tr>
+				<td>@log.Date</td>
+				<td>@log.Temperature</td>
+				<td>@log.RelativeHumidity</td>
+				<td>@log.DewPoint</td>
+				<td>@log.AtmospherePressure</td>
+				<td>@log.Directions</td>
+				<td>@log.WindSpeed</td>
+				<td>@log.Cloudiness</td>
+				<td>@log.CloudBase</td>
+				<td>@log.HorizontalVisibility</td>
+				<td>@log.WeatherConditions</td>
+			</tr>
+		}
+	</tbody>
+</table>
+<nav aria-label="..." class="d-flex justify-content-center">
+	<ul class="pagination">
+		<li class="@(hasPreviousPage ? "page-item": "page-item disabled")">
+			<a class="page-link" 
+			asp-controller="ViewArchives" 
+			asp-action="GetData"
+			asp-route-year="@(Model.Query.Year)"
+			asp-route-month="@(Model.Query.Month)"
+			asp-route-page="@(Model.Result.CurrentPage - 1)"
+			>Назад</a>
+		</li>
+		@for (int i = 0; i < firstPages.Length; i++)
+		{
+			<li class="@GetPageItemClass(firstPages[i])">
+				<a class="page-link" 
+				   asp-controller="ViewArchives"
+				   asp-action="GetData"
+				   asp-route-year="@(Model.Query.Year)"
+				   asp-route-month="@(Model.Query.Month)"
+				   asp-route-page="@(firstPages[i])">@(firstPages[i])</a>
+			</li>
+		}
+		@if (hasLeftDots)
+		{
+			<li class="page-item disabled"><span class="page-link">...</span></li>
+		}
+		@for (int i = min; i <= max; i++)
+		{
+			@if (firstPages.Contains(i) || lastPages.Contains(i))
+			{
+				continue;
+			}
+			<li class="@GetPageItemClass(i)">
+				<a class="page-link" 
+				   asp-controller="ViewArchives"
+				   asp-action="GetData"
+				   asp-route-year="@(Model.Query.Year)"
+				   asp-route-month="@(Model.Query.Month)"
+				   asp-route-page="@(i)">@i</a>
+			</li>
+		}
+		@if (hasRightDots)
+		{
+			<li class="page-item disabled"><span class="page-link">...</span></li>
+		}
+		@for (int i = 0; i < lastPages.Length; i++)
+		{
+			<li class="@GetPageItemClass(lastPages[i])">
+				<a class="page-link" 
+				   asp-controller="ViewArchives"
+				   asp-action="GetData"
+				   asp-route-year="@(Model.Query.Year)"
+				   asp-route-month="@(Model.Query.Month)"
+				   asp-route-page="@(lastPages[i])">@(lastPages[i])</a>
+			</li>
+		}
+
+		<li class="@(hasNextPage ? "page-item": "page-item disabled")">
+			<a class="page-link" asp-controller="ViewArchives"
+			   asp-action="GetData"
+			   asp-route-year="@(Model.Query.Year)"
+			   asp-route-month="@(Model.Query.Month)"
+			   asp-route-page="@(Model.Result.CurrentPage + 1)" tabindex="-1" aria-disabled="true">Вперед</a>
+		</li>
+	</ul>
+</nav>

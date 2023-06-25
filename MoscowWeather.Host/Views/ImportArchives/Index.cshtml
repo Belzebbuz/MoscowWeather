@@ -1,0 +1,27 @@
+﻿@model ImportArchivesModel
+<form 
+    method="post" 
+    class="d-flex flex-column align-items-center gap-4" 
+    enctype="multipart/form-data" 
+    id="submitForm"
+    action="@Url.Action("ImportData", "ImportArchives")">
+    <div class="mt-3">
+        <label for="formFile" class="form-label">Выбрать файлы</label>
+        <input class="form-control" name="files" accept=".xlsx" type="file" id="formFile" multiple>
+    </div>
+    <button type="submit" id="submitButton" class="btn btn-primary">Загрузить</button>
+</form>
+<script>
+        document.getElementById("submitForm").addEventListener("submit", function () {
+            document.getElementById("submitButton").disabled = true;
+            document.getElementById("submitButton").classList.add("btn-disabled");
+        });
+</script>
+@if (Model.ErrorMessage != null)
+{
+    <div class="border rounded-2 p-2 mt-2 border-danger">Error: @Model.ErrorMessage</div>
+}
+@if (Model.Success)
+{
+    <div class="border rounded-2 p-2 mt-2 border-success">Успешно загружено!</div>
+}

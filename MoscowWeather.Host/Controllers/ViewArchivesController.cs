@@ -15,7 +15,7 @@ public class ViewArchivesController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var logsResult = await _weatherRepository.GetAsync(null, null, 2, 10);
+        var logsResult = await _weatherRepository.GetAsync(null, null, 1, 10);
         var years = await _weatherRepository.GetTotalYearsAsync();
         return View(new ViewArchivesModel() { Result = logsResult, Years = years });
     }
